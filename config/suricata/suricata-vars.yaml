@@ -1,0 +1,22 @@
+# Suricata configuration reference
+#
+# These are the KEY VARIABLES to set inside the full /etc/suricata/suricata.yaml
+# file (which ships with hundreds of other defaults you generally don't need
+# to touch). Find your interface name first with `ip a` or `ifconfig`.
+
+vars:
+  address-groups:
+    HOME_NET: "<YOUR_ENDPOINT_IP>"   # e.g. "192.168.58.131/32" or your subnet
+    EXTERNAL_NET: "any"
+
+default-rule-path: /etc/suricata/rules
+rule-files:
+  - "*.rules"
+
+# Global stats configuration
+stats:
+  enabled: yes
+
+# Linux high speed capture support
+af-packet:
+  - interface: enp0s3   # <-- replace with your actual interface name

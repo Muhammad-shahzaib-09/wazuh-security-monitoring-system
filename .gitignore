@@ -1,0 +1,15 @@
+# Secrets — never commit real credentials
+config/**/sasl_passwd
+config/**/*.key
+**/*api_key*
+**/*.pem
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# Logs
+*.log

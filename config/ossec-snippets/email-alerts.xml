@@ -1,0 +1,29 @@
+<!--
+  Email Alerting (relayed through a local Postfix instance)
+  Add inside <ossec_config> on the MANAGER.
+  Path: /var/ossec/etc/ossec.conf
+
+  Wazuh does not support authenticated SMTP natively — smtp_server here
+  points at localhost, where Postfix handles the real (TLS + SASL) relay
+  to your mail provider. See docs/installation-guide.md, section 7.
+-->
+<ossec_config>
+  <global>
+    <email_notification>yes</email_notification>
+    <smtp_server>localhost</smtp_server>
+    <email_from><YOUR_ADDRESS>@gmail.com</email_from>
+    <email_to><RECEIVER_EMAIL></email_to>
+  </global>
+
+  <alerts>
+    <!-- Only alerts at/above this level trigger an email -->
+    <email_alert_level>10</email_alert_level>
+  </alerts>
+
+  <!-- Optional: granular override for a specific recipient/threshold -->
+  <email_alerts>
+    <email_to>you@example.com</email_to>
+    <level>4</level>
+    <do_not_delay/>
+  </email_alerts>
+</ossec_config>

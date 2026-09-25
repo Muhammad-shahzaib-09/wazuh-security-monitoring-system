@@ -1,0 +1,21 @@
+<!--
+  File Integrity Monitoring (FIM)
+  Add inside <ossec_config> on the AGENT (or manager, for local monitoring).
+  Path: /var/ossec/etc/ossec.conf
+-->
+<ossec_config>
+  <syscheck>
+    <!-- Monitor critical system files -->
+    <directories>/etc</directories>
+    <directories>/var/www</directories>
+    <directories>/home</directories>
+    <directories>/usr/local/bin</directories>
+
+    <realtime>true</realtime>
+    <report_changes>true</report_changes>
+
+    <!-- Exclude noisy, frequently-churning paths to cut false positives -->
+    <ignore>/etc/mtab</ignore>
+    <ignore>/etc/hosts.deny</ignore>
+  </syscheck>
+</ossec_config>

@@ -1,0 +1,39 @@
+<!--
+  Custom detection rules.
+  Path: /var/ossec/etc/rules/local_rules.xml
+
+  Rule IDs 100200-100201 are referenced by the VirusTotal active-response
+  block in config/ossec-snippets/virustotal-integration.xml — keep the
+  IDs in sync if you renumber anything.
+-->
+
+<group name="syscheck,pci_dss_11.5,nist_800_53_SI.7,">
+  <!-- Fires when a monitored file is modified -->
+  <rule id="100200" level="7">
+    <if_sid>550</if_sid>
+    <field name="file">/root</field>
+    <description>File modified in /root directory.</description>
+  </rule>
+
+  <!-- Fires when a new file appears in a monitored directory -->
+  <rule id="100201" level="7">
+    <if_sid>554</if_sid>
+    <field name="file">/root</field>
+    <description>File added to /root directory.</description>
+  </rule>
+</group>
+
+<group name="authentication_failed,">
+  <!-- Example threat-hunting rule mapped to MITRE ATT&CK T1110 (Brute Force) -->
+  <rule id="100001" level="10">
+    <decoded_as>json</decoded_as>
+    <field name="event_type">login_attempt</field>
+    <field name="status">failed</field>
+    <description>Potential Brute Force Attack</description>
+    <mitre>
+      <id>T1110</id>
+      <tactic>Credential Access</tactic>
+      <technique>Brute Force</technique>
+    </mitre>
+  </rule>
+</group>
