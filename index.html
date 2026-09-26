@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wazuh Security Monitoring &amp; Incident Response System</title>
+<meta name="description" content="A SIEM/EDR lab integrating Wazuh, Suricata, and VirusTotal, with detections mapped to MITRE ATT&amp;CK.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg-alt:#f3f4f7; --ink:#121a2b; --muted:#5b6472;
+    --navy:#0d1424; --line:#e2e4ea;
+    --crit:#d6432e; --high:#c9791a; --med:#3568c4; --low:#227a55;
+    --sans:"IBM Plex Sans",Arial,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.6}
+  img{max-width:100%;display:block}
+  a{color:inherit}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  .mono{font-family:var(--mono)}
+
+  header.hero{background:var(--navy);color:#eef1f7;padding:72px 0 40px;
+    background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.07) 1px, transparent 0);
+    background-size:22px 22px;}
+  .kicker{font-family:var(--mono);font-size:13px;color:#a7b2c9;margin:0 0 18px}
+  h1{font-size:clamp(30px,5vw,50px);line-height:1.1;margin:0 0 18px;font-weight:700;letter-spacing:-0.01em}
+  .lede{font-size:18px;color:#c4cbdb;max-width:620px;margin:0 0 28px}
+  .cta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:40px}
+  .btn{font-family:var(--mono);font-size:14px;padding:11px 18px;border-radius:3px;text-decoration:none;border:1px solid rgba(255,255,255,.28);display:inline-block}
+  .btn.primary{background:#eef1f7;color:var(--navy);border-color:transparent}
+  .btn:hover{border-color:#eef1f7}
+
+  .status{display:flex;flex-wrap:wrap;border:1px solid rgba(255,255,255,.16);border-radius:4px;overflow:hidden}
+  .status div{flex:1;min-width:120px;padding:14px 18px;border-right:1px solid rgba(255,255,255,.16)}
+  .status div:last-child{border-right:none}
+  .status .n{font-family:var(--mono);font-size:22px;font-weight:600}
+  .status .l{font-size:12px;color:#a7b2c9;margin-top:2px}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#3fbf83;margin-right:8px;vertical-align:middle;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  @media (prefers-reduced-motion: reduce){.dot{animation:none}}
+
+  section{padding:56px 0;border-bottom:1px solid var(--line)}
+  section.alt{background:var(--bg-alt)}
+  .eyebrow{font-family:var(--mono);font-size:13px;color:var(--muted);margin:0 0 10px}
+  h2{font-size:25px;margin:0 0 20px;max-width:640px}
+  .lead-col{max-width:640px}
+  p{margin:0 0 14px}
+  .muted{color:var(--muted)}
+  .pull{font-family:var(--mono);font-size:14px;color:var(--muted);border-left:3px solid var(--high);padding:2px 0 2px 16px;margin:22px 0 0}
+
+  .cap-list{display:flex;flex-direction:column}
+  .cap-row{display:flex;gap:18px;padding:16px 0;border-top:1px solid var(--line)}
+  .cap-row:last-child{border-bottom:1px solid var(--line)}
+  .cap-bar{width:4px;border-radius:2px;flex-shrink:0}
+  .cap-row h3{margin:0 0 4px;font-size:16px}
+  .cap-row p{margin:0;color:var(--muted);font-size:15px}
+
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+  figure{margin:0;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:#fff}
+  figure img{width:100%;height:auto;border-bottom:1px solid var(--line)}
+  figcaption{padding:12px 14px;font-size:13px;color:var(--muted)}
+  figcaption strong{display:block;color:var(--ink);font-size:14px;margin-bottom:2px}
+
+  .log{font-family:var(--mono);font-size:14px;background:var(--navy);color:#d7e0f4;border-radius:4px;padding:22px 26px;overflow-x:auto}
+  .log div{display:flex;justify-content:space-between;gap:20px;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.14)}
+  .log div:last-child{border-bottom:none}
+  .log .k{color:#a7b2c9}
+
+  .tags{display:flex;flex-wrap:wrap;gap:8px}
+  .tag{font-family:var(--mono);font-size:13px;border:1px solid var(--line);padding:6px 10px;border-radius:3px}
+
+  .apps{display:grid;grid-template-columns:repeat(2,1fr);gap:18px 24px;margin:20px 0 36px}
+  .apps div{border-top:2px solid var(--med);padding-top:10px}
+  .apps h3{font-size:15px;margin:0 0 4px}
+  .apps p{margin:0;color:var(--muted);font-size:14px}
+
+  .steps{max-width:760px}
+  details.step{border:1px solid var(--line);border-radius:4px;margin-bottom:10px;background:#fff}
+  details.step summary{cursor:pointer;padding:14px 18px;font-weight:600;list-style:none;display:flex;gap:12px;align-items:baseline}
+  details.step summary::-webkit-details-marker{display:none}
+  details.step summary::before{content:"+";font-family:var(--mono);color:var(--med);width:14px;flex-shrink:0}
+  details.step[open] summary::before{content:"\2013"}
+  details.step .step-body{padding:0 18px 20px}
+  details.step .step-body p{color:var(--muted);font-size:14.5px}
+  pre.code2{background:var(--navy);color:#d7e0f4;font-family:var(--mono);font-size:12.5px;padding:14px 16px;border-radius:4px;overflow-x:auto;line-height:1.6;margin:10px 0}
+  .step-note{font-size:13px;color:var(--low);margin:8px 0 0}
+  .pdf-cta{display:flex;align-items:center;justify-content:space-between;gap:18px;background:var(--navy);color:#eef1f7;padding:22px 26px;border-radius:6px;margin:24px 0 32px;flex-wrap:wrap}
+  .pdf-cta p{margin:0;color:#c4cbdb;font-size:14px;max-width:420px}
+  .pdf-cta strong{display:block;color:#fff;font-size:16px;margin-bottom:4px}
+  footer{padding:44px 0;font-size:14px;color:var(--muted)}
+  footer a{text-decoration:underline}
+  .foot-grid{display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px}
+
+  @media (max-width:720px){
+    .grid{grid-template-columns:1fr}
+    .apps{grid-template-columns:1fr}
+    .status div{min-width:45%}
+  }
+  :focus-visible{outline:2px solid var(--med);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">wazuh-security-monitoring-system</p>
+    <h1>Advanced Security Monitoring &amp; Incident Response</h1>
+    <p class="lede">A SIEM/EDR lab integrating Wazuh, Suricata, and VirusTotal, with every detection mapped back to MITRE ATT&amp;CK — built end-to-end as a Final Year Project.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/YOUR-USERNAME/wazuh-security-monitoring-system">View on GitHub</a>
+      <a class="btn" href="https://github.com/YOUR-USERNAME/wazuh-security-monitoring-system/blob/main/README.md">Read the writeup</a>
+    </div>
+    <div class="status">
+      <div><span class="dot"></span><span class="n">2</span><div class="l">agents active</div></div>
+      <div><span class="n" style="color:var(--crit)">4</span><div class="l">critical CVEs</div></div>
+      <div><span class="n" style="color:var(--high)">329</span><div class="l">high CVEs</div></div>
+      <div><span class="n">21,879</span><div class="l">network alerts / 7d</div></div>
+      <div><span class="n">2.3s</span><div class="l">avg alert latency</div></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap lead-col">
+    <p class="eyebrow">01 — Overview</p>
+    <h2>Closing the visibility gap between hosts, network, and threat intel</h2>
+    <p>Organizations take an average of 287 days to identify and contain a breach (IBM, 2023) — largely because monitoring tools operate in silos. This project builds a unified, open-source security operations stack on Wazuh that centralizes log analysis and file integrity monitoring across Windows and Linux endpoints, correlates Suricata network alerts into the same dashboard, automates malware triage through VirusTotal, and classifies every finding against MITRE ATT&amp;CK.</p>
+    <p class="pull">Something happened → what, where, how bad, and which technique it maps to. That's the core workflow of a SOC.</p>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <p class="eyebrow">02 — Capabilities</p>
+    <h2>What the stack actually does</h2>
+    <div class="cap-list">
+      <div class="cap-row"><div class="cap-bar" style="background:var(--med)"></div><div><h3>Multi-OS agent monitoring</h3><p>Wazuh agents on Windows 11 and Ubuntu, reporting over an encrypted channel to a central manager.</p></div></div>
+      <div class="cap-row"><div class="cap-bar" style="background:var(--low)"></div><div><h3>File integrity monitoring</h3><p>Real-time watch on system and application directories, tuned to cut noisy false positives.</p></div></div>
+      <div class="cap-row"><div class="cap-bar" style="background:var(--crit)"></div><div><h3>Malware detection</h3><p>VirusTotal API scans files on change and can auto-remove confirmed threats via active-response.</p></div></div>
+      <div class="cap-row"><div class="cap-bar" style="background:var(--high)"></div><div><h3>Network IDS/IPS</h3><p>Suricata plus the Emerging Threats ruleset, alerts ingested straight into the same dashboard.</p></div></div>
+      <div class="cap-row"><div class="cap-bar" style="background:var(--med)"></div><div><h3>MITRE ATT&amp;CK mapping</h3><p>Custom rules tagged with technique and tactic IDs for structured threat hunting.</p></div></div>
+      <div class="cap-row"><div class="cap-bar" style="background:var(--low)"></div><div><h3>Vulnerability assessment</h3><p>Scheduled scans against NVD, CPE, and Microsoft Security Update feeds, filtered by CVSS.</p></div></div>
+      <div class="cap-row"><div class="cap-bar" style="background:var(--crit)"></div><div><h3>Automated response</h3><p>An active-response Bash script quarantines files flagged malicious, with a full audit log.</p></div></div>
+      <div class="cap-row"><div class="cap-bar" style="background:var(--high)"></div><div><h3>Email alerting</h3><p>Postfix-relayed SMTP notifications for alerts above a configurable severity threshold.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">03 — Console</p>
+    <h2>What it looks like in use</h2>
+    <div class="grid">
+      <figure><img src="docs/screenshots/01-overview-dashboard.png" alt="Wazuh overview dashboard" loading="lazy"><figcaption><strong>Overview dashboard</strong>Agent health, alert severity, and module shortcuts.</figcaption></figure>
+      <figure><img src="docs/screenshots/04-mitre-attack-dashboard.png" alt="MITRE ATT&amp;CK dashboard" loading="lazy"><figcaption><strong>MITRE ATT&amp;CK dashboard</strong>Alert evolution and technique distribution per agent.</figcaption></figure>
+      <figure><img src="docs/screenshots/05-file-integrity-monitoring.png" alt="File integrity monitoring dashboard" loading="lazy"><figcaption><strong>File integrity monitoring</strong>Real-time add/modify/delete events by rule and user.</figcaption></figure>
+      <figure><img src="docs/screenshots/06-network-ids-suricata.png" alt="Suricata network IDS dashboard" loading="lazy"><figcaption><strong>Network IDS (Suricata)</strong>21,879 alerts analyzed over a 7-day window.</figcaption></figure>
+      <figure><img src="docs/screenshots/07-malware-detection-virustotal.png" alt="VirusTotal malware detection dashboard" loading="lazy"><figcaption><strong>Malware detection</strong>VirusTotal scan results by rule group and source file.</figcaption></figure>
+      <figure><img src="docs/screenshots/08-vulnerability-detection.png" alt="Vulnerability detection dashboard" loading="lazy"><figcaption><strong>Vulnerability detection</strong>CVE exposure by severity across the monitored fleet.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">04 — Build it yourself</p>
+    <h2>A complete, beginner-friendly walkthrough</h2>
+    <p class="lead-col">Never touched a SIEM before? That's fine — every step below is written for a first-timer, with a plain-language note on <em>why</em> each command matters, not just what to type. It all runs inside a free virtual machine, so it can't affect your real computer.</p>
+
+    <div class="pdf-cta">
+      <div>
+        <strong>Prefer to read it offline or print it?</strong>
+        <p>Get the full guide as a PDF — same 10 steps, with every command explained line-by-line.</p>
+      </div>
+      <a class="btn primary" href="docs/Build-Your-Own-SOC-Lab-Guide.pdf" download>Download the PDF guide</a>
+    </div>
+
+    <div class="steps">
+      <details class="step">
+        <summary>Step 1 — Download and start the Wazuh server</summary>
+        <div class="step-body">
+          <p>Wazuh ships as a ready-made virtual machine (an OVA file) with everything pre-installed. Import it into VirtualBox: <strong>File → Import Appliance</strong>.</p>
+          <p class="step-note">✓ Before clicking Start, set the VM's Display → Graphics Controller to <span class="mono">VMSVGA</span>, or the screen may freeze.</p>
+        </div>
+      </details>
+      <details class="step">
+        <summary>Step 2 — Log in and find your server's address</summary>
+        <div class="step-body">
+          <pre class="code2"># Default login at the console:
+User: wazuh-user   Password: wazuh
+
+# Become admin, then find your IP address (look for "inet"):
+sudo -i
+ip a</pre>
+          <p>Write that IP address down — you'll paste it into almost every step below as <span class="mono">&lt;manager-ip&gt;</span>.</p>
+        </div>
+      </details>
+      <details class="step">
+        <summary>Step 3 — Open the web dashboard</summary>
+        <div class="step-body">
+          <pre class="code2">https://&lt;manager-ip&gt;
+Username: admin   Password: admin   (change this immediately)</pre>
+          <p class="step-note">✓ A "not secure" browser warning is normal for a lab with a self-signed certificate.</p>
+        </div>
+      </details>
+      <details class="step">
+        <summary>Step 4 — Add a Windows computer to watch</summary>
+        <div class="step-body">
+          <pre class="code2">REM Run as Administrator, replacing &lt;manager-ip&gt; from Step 2
+wazuh-agent-4.12.0-1.msi /q WAZUH_MANAGER="&lt;manager-ip&gt;"
+NET START Wazuh</pre>
+          <p>An "agent" is a small program that reports back to your server. Check the dashboard's Endpoints page — it should appear as <strong>Active</strong>.</p>
+        </div>
+      </details>
+      <details class="step">
+        <summary>Step 5 — Add a Linux computer to watch</summary>
+        <div class="step-body">
+          <pre class="code2"># Trust Wazuh's package source, then install the agent:
+curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | gpg --no-default-keyring \
+  --keyring gnupg-ring:/usr/share/keyrings/wazuh.gpg --import
+echo "deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/4.x/apt/ stable main" \
+  | sudo tee -a /etc/apt/sources.list.d/wazuh.list
+sudo apt-get update
+WAZUH_MANAGER="&lt;manager-ip&gt;" sudo apt-get install wazuh-agent
+
+# Turn it on and set it to start automatically:
+sudo systemctl enable --now wazuh-agent</pre>
+        </div>
+      </details>
+      <details class="step">
+        <summary>Step 6 — Turn on malware scanning (VirusTotal)</summary>
+        <div class="step-body">
+          <p>Get a free API key at virustotal.com, then add this to the manager's config so new/changed files get checked automatically:</p>
+          <pre class="code2">&lt;!-- /var/ossec/etc/ossec.conf on the manager --&gt;
+&lt;integration&gt;
+  &lt;name&gt;virustotal&lt;/name&gt;
+  &lt;api_key&gt;PASTE_YOUR_KEY_HERE&lt;/api_key&gt;
+  &lt;rule_id&gt;100200,100201&lt;/rule_id&gt;
+&lt;/integration&gt;</pre>
+        </div>
+      </details>
+      <details class="step">
+        <summary>Step 7 — Turn on network monitoring (Suricata)</summary>
+        <div class="step-body">
+          <pre class="code2">sudo add-apt-repository ppa:oisf/suricata-stable
+sudo apt-get update && sudo apt-get install suricata -y
+sudo systemctl restart suricata</pre>
+          <p>Then point the agent at Suricata's alert file (<span class="mono">/var/log/suricata/eve.json</span>) so it flows into the same dashboard as everything else.</p>
+        </div>
+      </details>
+      <details class="step">
+        <summary>Step 8 — Turn on vulnerability scanning</summary>
+        <div class="step-body">
+          <pre class="code2">&lt;!-- /var/ossec/etc/ossec.conf on the manager --&gt;
+&lt;vulnerability-detector&gt;
+  &lt;enabled&gt;yes&lt;/enabled&gt;
+  &lt;feed&gt;nvd&lt;/feed&gt;&lt;feed&gt;cpe&lt;/feed&gt;&lt;feed&gt;msu&lt;/feed&gt;
+&lt;/vulnerability-detector&gt;</pre>
+          <p>Restart the manager and check the <strong>Vulnerability Detection</strong> tab a few minutes later.</p>
+        </div>
+      </details>
+      <details class="step">
+        <summary>Step 9 — Get email alerts</summary>
+        <div class="step-body">
+          <p>Wazuh can't log into Gmail directly, so a small relay (Postfix) does it for you — using a Gmail <strong>app password</strong>, never your real one.</p>
+          <pre class="code2">sudo apt install postfix mailutils libsasl2-modules
+# then configure relayhost + smtp_sasl_* in /etc/postfix/main.cf
+# (full copy-paste version in the PDF guide)</pre>
+        </div>
+      </details>
+      <details class="step">
+        <summary>Step 10 — Test it and celebrate</summary>
+        <div class="step-body">
+          <pre class="code2"># A harmless, industry-standard test file (not a real virus):
+curl -Lo /root/eicar.com https://secure.eicar.org/eicar.com</pre>
+          <p>See it show up under <strong>Malware Detection</strong> in the dashboard — your lab is live end-to-end.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap lead-col">
+    <p class="eyebrow">05 — Results</p>
+    <h2>Measured in the lab</h2>
+    <div class="log">
+      <div><span class="k">alert_generation_time</span><span>~2.3s avg</span></div>
+      <div><span class="k">cpu_utilization_peak</span><span>40–60%</span></div>
+      <div><span class="k">memory_utilization_avg</span><span>55%</span></div>
+      <div><span class="k">endpoints_tested</span><span>50, no degradation</span></div>
+      <div><span class="k">network_alerts_7d</span><span>21,879</span></div>
+      <div><span class="k">cve_exposure</span><span>4 critical · 329 high · 630 medium · 27 low</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">06 — Applications &amp; skills</p>
+    <h2>Where this applies, and what it demonstrates</h2>
+    <div class="apps">
+      <div><h3>Enterprise IT security</h3><p>Proactive detection and response for finance, healthcare, and tech orgs.</p></div>
+      <div><h3>Regulatory compliance</h3><p>Audit-ready logs mapped toward GDPR, HIPAA, and PCI-DSS.</p></div>
+      <div><h3>E-commerce</h3><p>Monitoring and mitigating network-based threats against transactional systems.</p></div>
+      <div><h3>Education &amp; training</h3><p>A self-contained lab for teaching SOC workflows.</p></div>
+    </div>
+    <div class="tags">
+      <span class="tag">SIEM administration</span>
+      <span class="tag">log analysis</span>
+      <span class="tag">rule authoring (XML)</span>
+      <span class="tag">network IDS</span>
+      <span class="tag">FIM</span>
+      <span class="tag">CVSS triage</span>
+      <span class="tag">threat intel APIs</span>
+      <span class="tag">MITRE ATT&amp;CK</span>
+      <span class="tag">IR automation</span>
+      <span class="tag">SMTP relay config</span>
+      <span class="tag">Linux administration</span>
+      <span class="tag">Windows endpoints</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-grid">
+    <div>
+      <strong class="mono" style="color:var(--ink)">Muhammad Shahzaib</strong><br>
+      BS Cyber Security, The Islamia University of Bahawalpur<br>
+      <a href="https://linkedin.com/in/muhammad-shahzaib-jatt">linkedin.com/in/muhammad-shahzaib-jatt</a>
+    </div>
+    <div>
+      Built with Zaryab Khan · supervised by Mr. Maqsood Ahmad<br>
+      MIT licensed · <a href="https://github.com/YOUR-USERNAME/wazuh-security-monitoring-system">source on GitHub</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
